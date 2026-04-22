@@ -133,14 +133,14 @@ const GraphVisualization = ({
             cy={pos.y}
             r={vertexRadius}
             fill={color}
-            stroke={isDark ? '#fff' : '#2C1A3D'}
+            stroke={isDark ? '#fff' : '#6000b9'}
             strokeWidth={2}
           />
           <SvgText
             x={pos.x}
             y={pos.y + 3}
             fontSize={fontSize}
-            fill={isDark ? '#fff' : '#2C1A3D'}
+            fill={isDark ? '#fff' : '#6000b9'}
             textAnchor="middle"
             fontWeight="bold"
           >

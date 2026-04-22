@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { GlassInput, GlassButton, GlassCard, InputSelector, NumberInput, ResultBox } from '../components/UIComponents';
 import GraphVisualization from '../components/GraphVisualization';
 import { libraryDefinitions, authors } from '../data/library';
@@ -26,44 +27,49 @@ export const MainMenuScreen = ({ navigation }) => {
   const { theme, isDark, toggleTheme } = useTheme();
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.primary }]}>Graph Explorer</Text>
-        <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Изучение теории графов</Text>
-        <Text style={[styles.description, { color: theme.textSecondary }]}>
-          Интерактивное обучение алгоритмам на графах
-        </Text>
-      </View>
+    <LinearGradient
+      colors={isDark ? ['#1a1a2e', '#16213e', '#0f3460'] : ['#c7d2fe', '#a5b4fc', '#818cf8']}
+      style={styles.gradientBackground}
+    >
+      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: isDark ? '#fff' : '#312e81' }]}>Graph Explorer</Text>
+          <Text style={[styles.subtitle, { color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(49,46,129,0.7)' }]}>Изучение теории графов</Text>
+          <Text style={[styles.description, { color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(49,46,129,0.6)' }]}>
+            Интерактивное обучение алгоритмам на графах
+          </Text>
+        </View>
 
-      <TouchableOpacity
-        style={[styles.themeToggle, { backgroundColor: theme.surface, borderColor: theme.border }]}
-        onPress={toggleTheme}
-        activeOpacity={0.8}
-      >
-        <Text style={[styles.themeToggleText, { color: theme.text }]}>
-          {isDark ? 'Светлая тема' : 'Тёмная тема'}
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.themeToggle, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(79,70,229,0.15)', borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(79,70,229,0.3)' }]}
+          onPress={toggleTheme}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.themeToggleText, { color: isDark ? '#fff' : '#312e81' }]}>
+            {isDark ? 'Светлая тема' : 'Тёмная тема'}
+          </Text>
+        </TouchableOpacity>
 
-      <GlassButton
-        title="Задачи"
-        onPress={() => navigation.navigate('TasksList')}
-        variant="accent"
-        style={styles.mainMenuButton}
-      />
-      <GlassButton
-        title="Библиотека"
-        onPress={() => navigation.navigate('Library')}
-        variant="secondary"
-        style={styles.mainMenuButton}
-      />
-      <GlassButton
-        title="Об авторах"
-        onPress={() => navigation.navigate('About')}
-        variant="secondary"
-        style={styles.mainMenuButton}
-      />
-    </ScrollView>
+        <GlassButton
+          title="Задачи"
+          onPress={() => navigation.navigate('TasksList')}
+          variant="accent"
+          style={styles.mainMenuButton}
+        />
+        <GlassButton
+          title="Библиотека"
+          onPress={() => navigation.navigate('Library')}
+          variant="primary"
+          style={styles.mainMenuButton}
+        />
+        <GlassButton
+          title="Об авторах"
+          onPress={() => navigation.navigate('About')}
+          variant="primary"
+          style={styles.mainMenuButton}
+        />
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
@@ -600,6 +606,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  gradientBackground: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
