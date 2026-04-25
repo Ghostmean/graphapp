@@ -207,6 +207,7 @@ export const TaskScreen = ({ route, navigation }) => {
   const [result, setResult] = useState(null);
   const [matrix, setMatrix] = useState(null);
   const [generatedGraph, setGeneratedGraph] = useState(null);
+  const [coloringResult, setColoringResult] = useState(null);
   const [userSequence, setUserSequence] = useState('');
   const [startVertex, setStartVertex] = useState(1);
   const [pruferInput, setPruferInput] = useState('');
@@ -275,10 +276,19 @@ export const TaskScreen = ({ route, navigation }) => {
   };
 
   const executeTask = () => {
-    const m = validateAndParseGraph();
-    if (!m) return;
+    let m = null;
     
-    showGraph(m);
+    // Для case 10, 11 нужна специальная обработка, для 12 нужна матрица
+    if (taskIndex === 10 || taskIndex === 11) {
+      // special handling
+    } else if (taskIndex === 12) {
+      m = validateAndParseGraph();
+      if (!m) return;
+    } else {
+      m = validateAndParseGraph();
+      if (!m) return;
+      showGraph(m);
+    }
     
     switch(taskIndex) {
       case 0: {
@@ -357,13 +367,15 @@ export const TaskScreen = ({ route, navigation }) => {
         break;
       }
       case 7: {
-        const weightedM = Utils.generateWeightedGraph(numVertices);
-        const mst = Utils.primMST(weightedM);
+        const m = validateAndParseGraph();
+        if (!m) return;
+        
+        const mst = Utils.primMST(m);
         setResult({ 
           edges: mst.edges.map(e => `(${e.from} - ${e.to}) вес: ${e.weight}`),
           totalWeight: mst.totalWeight,
         });
-        showGraph(weightedM);
+        showGraph(m);
         break;
       }
       case 8: {
@@ -375,12 +387,12 @@ export const TaskScreen = ({ route, navigation }) => {
           setError('Неверный номер начальной вершины');
           return;
         }
-        const isDirected = graphType === 'directed';
-        const distances = Utils.dijkstra(m, start, isDirected);
+        const distances = Utils.dijkstra(m, start);
         setResult({ distances: distances.map(d => `До ${d.vertex}: ${d.distance}`) });
         showGraph(m);
         break;
       }
+        
       case 9: {
         const distMatrix = Utils.floydWarshall(m);
         setResult({ 
@@ -392,9 +404,11 @@ export const TaskScreen = ({ route, navigation }) => {
       }
       case 10: {
         const edgesInput = pruferInput.trim().split('\n').map(line => {
-          const [a, b] = line.split(/[\s,]+/);
-          return [parseInt(a), parseInt(b)];
-        }).filter(x => x[0] && x[1]);
+          const parts = line.trim().split(/[\s,]+/);
+          const a = parseInt(parts[0]);
+          const b = parseInt(parts[1]);
+          return [a, b];
+        }).filter(x => x.length === 2 && !isNaN(x[0]) && !isNaN(x[1]));
         
         if (edgesInput.length !== numVertices - 1) {
           setError(`Введите ${numVertices - 1} рёбер (для дерева)`);
@@ -403,7 +417,15 @@ export const TaskScreen = ({ route, navigation }) => {
         
         const code = Utils.encodePrufer(edgesInput, numVertices);
         setResult({ code: code.join(' ') });
-        showGraph(m);
+        
+        const pruferMatrix = Array.from({ length: numVertices }, () => Array(numVertices).fill(0));
+        for (const [a, b] of edgesInput) {
+          if (a >= 1 && a <= numVertices && b >= 1 && b <= numVertices) {
+            pruferMatrix[a-1][b-1] = 1;
+            pruferMatrix[b-1][a-1] = 1;
+          }
+        }
+        showGraph(pruferMatrix);
         break;
       }
       case 11: {
@@ -436,6 +458,8 @@ export const TaskScreen = ({ route, navigation }) => {
           minColors: coloring.minColors,
           colors: coloring.colors.map(c => `Вершина ${c.vertex}: цвет ${c.color + 1}`),
         });
+        setColoringResult(coloring.colors);
+        showGraph(m);
         break;
       }
     }
@@ -645,7 +669,7 @@ export const TaskScreen = ({ route, navigation }) => {
           <GraphVisualization 
             matrix={generatedGraph} 
             weighted={taskIndex === 7 || taskIndex === 8}
-            vertexColors={taskIndex === 12 ? result?.colors?.map((c, i) => ({ color: parseInt(c.split(' ')[2]), colorName: ['#9B59B6', '#8E44AD', '#E8DAEF', '#D7BDE2', '#AF7AC5', '#BB8FCE'][parseInt(c.split(' ')[2]) % 6] })) : []}
+            vertexColors={taskIndex === 12 ? (coloringResult || []).map((c, i) => ({ color: c.color, colorName: c.colorName })) : []}
           />
         )}
         

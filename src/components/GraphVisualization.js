@@ -141,7 +141,9 @@ const GraphVisualization = ({
     
     return positions.map((pos, index) => {
       if (!pos) return null;
-      const color = vertexColors[index]?.colorName || theme.primary;
+      const vc = vertexColors[index];
+      const color = vc && vc.colorName ? vc.colorName : theme.primary;
+      const strokeColor = isDark ? '#fff' : '#333';
       
       return (
         <G key={`vertex-${index}`}>
@@ -150,14 +152,14 @@ const GraphVisualization = ({
             cy={pos.y}
             r={vertexRadius}
             fill={color}
-            stroke={isDark ? '#fff' : '#e5ff00'}
+            stroke={strokeColor}
             strokeWidth={2}
           />
           <SvgText
             x={pos.x}
             y={pos.y + 3}
             fontSize={fontSize}
-            fill={isDark ? '#fff' : '#ff2200'}
+            fill={strokeColor}
             textAnchor="middle"
             fontWeight="bold"
           >

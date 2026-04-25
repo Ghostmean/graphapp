@@ -458,7 +458,6 @@ export const dijkstra = (matrix, start, isDirected = false) => {
   const n = matrix.length;
   const dist = Array(n).fill(Infinity);
   const visited = Array(n).fill(false);
-  const processedEdges = new Set();
   
   dist[start] = 0;
   
@@ -466,6 +465,7 @@ export const dijkstra = (matrix, start, isDirected = false) => {
     let u = -1;
     let min = Infinity;
     
+    // Находим непосещённую вершину с минимальным расстоянием
     for (let v = 0; v < n; v++) {
       if (!visited[v] && dist[v] < min) {
         min = dist[v];
@@ -477,14 +477,19 @@ export const dijkstra = (matrix, start, isDirected = false) => {
     
     visited[u] = true;
     
+    // Релаксация рёбер
     for (let v = 0; v < n; v++) {
+      // Проверяем наличие ребра
       if (matrix[u][v] > 0 && !visited[v]) {
-        const edgeKey = isDirected ? `${u}-${v}` : `${Math.min(u, v)}-${Math.max(u, v)}`;
-        
-        if (processedEdges.has(edgeKey)) continue;
-        processedEdges.add(edgeKey);
-        
         const newDist = dist[u] + matrix[u][v];
+        if (newDist < dist[v]) {
+          dist[v] = newDist;
+        }
+      }
+      
+      // ДЛЯ НЕОРИЕНТИРОВАННОГО ГРАФА: проверяем обратное ребро
+      if (!isDirected && matrix[v][u] > 0 && !visited[v]) {
+        const newDist = dist[u] + matrix[v][u];
         if (newDist < dist[v]) {
           dist[v] = newDist;
         }
@@ -494,6 +499,8 @@ export const dijkstra = (matrix, start, isDirected = false) => {
   
   return dist.map((d, i) => ({ vertex: i + 1, distance: d === Infinity ? '∞' : d }));
 };
+
+
 
 
 /**
