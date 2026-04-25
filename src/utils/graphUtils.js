@@ -49,7 +49,6 @@ export const parseAdjacencyMatrix = (input, n) => {
   return matrix;
 };
 
-};
 
 /**
  * Парсит строку списка смежности в матрицу смежности.
@@ -84,7 +83,7 @@ export const parseAdjacencyList = (input, n) => {
   return matrix;
 };
 
-};
+
 
 /**
  * Парсит матрицу инцидентности в матрицу смежности.
@@ -120,7 +119,7 @@ export const parseIncidenceMatrix = (input, n) => {
   return adjMatrix;
 };
 
-};
+
 
 /**
  * Вычисляет степени всех вершин графа.
@@ -136,7 +135,7 @@ export const getDegrees = (matrix) => {
   });
 };
 
-};
+
 
 /**
  * Находит все компоненты связности в графе.
@@ -172,7 +171,6 @@ export const findConnectedComponents = (matrix) => {
   return components;
 };
 
-};
 
 /**
  * Проверяет, является ли граф эйлеровым или полуэйлеровым.
@@ -205,7 +203,7 @@ export const isEulerian = (matrix) => {
   return { isEulerian: true, isSemiEulerian: false };
 };
 
-};
+
 
 /**
  * Проверяет, является ли граф двудольным.
@@ -256,7 +254,6 @@ export const isBipartite = (matrix) => {
   return { isBipartite: true, sets: [set1, set2] };
 };
 
-};
 
 /**
  * Проверяет, является ли граф полным двудольным.
@@ -306,7 +303,6 @@ export const isCompleteBipartite = (matrix) => {
   return { isCompleteBipartite: true, sets };
 };
 
-};
 
 /**
  * Выполняет обход графа в глубину (DFS).
@@ -343,7 +339,7 @@ export const dfs = (matrix, start = 0) => {
   return order;
 };
 
-};
+
 
 /**
  * Выполняет обход графа в ширину (BFS).
@@ -394,7 +390,7 @@ export const bfs = (matrix, start = 0) => {
   return order;
 };
 
-};
+
 
 /**
  * Находит минимальное остовное дерево (MST) алгоритмом Прима.
@@ -447,20 +443,22 @@ export const primMST = (matrix) => {
   return { edges, totalWeight };
 };
 
-};
+
 
 /**
  * Находит кратчайшие пути от заданной вершины алгоритмом Дейкстры.
  * 
  * @param {number[][]} matrix - Матрица смежности с весами
- * @param {number} start - Начальная вершина
+ * @param {number} start - Начальная вершина (индексация с 0)
+ * @param {boolean} isDirected - true для ориентированного графа, false для неориентированного
  * @returns {object[]} Массив объектов с вершиной и расстоянием
  */
-export const dijkstra = (matrix, start) => {
+export const dijkstra = (matrix, start, isDirected = false) => {
   if (!matrix || !matrix.length) return [];
   const n = matrix.length;
   const dist = Array(n).fill(Infinity);
   const visited = Array(n).fill(false);
+  const processedEdges = new Set();
   
   dist[start] = 0;
   
@@ -481,6 +479,11 @@ export const dijkstra = (matrix, start) => {
     
     for (let v = 0; v < n; v++) {
       if (matrix[u][v] > 0 && !visited[v]) {
+        const edgeKey = isDirected ? `${u}-${v}` : `${Math.min(u, v)}-${Math.max(u, v)}`;
+        
+        if (processedEdges.has(edgeKey)) continue;
+        processedEdges.add(edgeKey);
+        
         const newDist = dist[u] + matrix[u][v];
         if (newDist < dist[v]) {
           dist[v] = newDist;
@@ -492,7 +495,6 @@ export const dijkstra = (matrix, start) => {
   return dist.map((d, i) => ({ vertex: i + 1, distance: d === Infinity ? '∞' : d }));
 };
 
-};
 
 /**
  * Находит кратчайшие пути между всеми парами вершин алгоритмом Флойда-Уоршелла.
@@ -529,7 +531,7 @@ export const floydWarshall = (matrix) => {
   );
 };
 
-};
+
 
 /**
  * Кодирует дерево в последовательность Прюфера.
@@ -581,7 +583,7 @@ export const encodePrufer = (edges, n) => {
   return code;
 };
 
-};
+
 
 /**
  * Декодирует последовательность Прюфера в дерево.
@@ -630,7 +632,7 @@ export const decodePrufer = (code) => {
   return edges;
 };
 
-};
+
 
 /**
  * Раскрашивает вершины графа жадным алгоритмом.
@@ -678,8 +680,6 @@ export const greedyColoring = (matrix) => {
   return { colors: result, minColors: maxColor };
 };
 
-};
-
 /**
  * Генерирует случайный связный граф.
  * При necessary делает граф связным, добавляя рёбра для связывания компонент.
@@ -713,7 +713,6 @@ export const generateRandomGraph = (n, connected = false) => {
   return matrix;
 };
 
-};
 
 /**
  * Генерирует случайный взвешенный граф.

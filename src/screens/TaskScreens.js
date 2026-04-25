@@ -202,6 +202,7 @@ export const TaskScreen = ({ route, navigation }) => {
   
   const [numVertices, setNumVertices] = useState(5);
   const [inputFormat, setInputFormat] = useState('matrix');
+  const [graphType, setGraphType] = useState('undirected');
   const [graphInput, setGraphInput] = useState('');
   const [result, setResult] = useState(null);
   const [matrix, setMatrix] = useState(null);
@@ -366,15 +367,18 @@ export const TaskScreen = ({ route, navigation }) => {
         break;
       }
       case 8: {
-        const weightedM = Utils.generateWeightedGraph(numVertices);
+        const m = validateAndParseGraph();
+        if (!m) return;
+        
         const start = startVertex - 1;
         if (start < 0 || start >= numVertices) {
           setError('Неверный номер начальной вершины');
           return;
         }
-        const distances = Utils.dijkstra(weightedM, start);
+        const isDirected = graphType === 'directed';
+        const distances = Utils.dijkstra(m, start, isDirected);
         setResult({ distances: distances.map(d => `До ${d.vertex}: ${d.distance}`) });
-        showGraph(weightedM);
+        showGraph(m);
         break;
       }
       case 9: {
@@ -612,13 +616,21 @@ export const TaskScreen = ({ route, navigation }) => {
         ) : null}
         
         {taskIndex === 8 ? (
-          <NumberInput
-            label="Начальная вершина"
-            value={startVertex}
-            onChangeText={setStartVertex}
-            min={1}
-            max={numVertices}
-          />
+          <>
+            <NumberInput
+              label="Начальная вершина"
+              value={startVertex}
+              onChangeText={setStartVertex}
+              min={1}
+              max={numVertices}
+            />
+            <InputSelector
+              options={['undirected', 'directed']}
+              selected={graphType}
+              onSelect={setGraphType}
+              labels={['Неориентированный', 'Ориентированный']}
+            />
+          </>
         ) : null}
         
         {error ? (
