@@ -1,3 +1,43 @@
+/**
+ * Утилиты для работы с графами.
+ * Содержит функции для парсинга, алгоритмов и операций над графами.
+ * 
+ * Функции парсинга:
+ * - parseAdjacencyMatrix: Парсит матрицу смежности
+ * - parseAdjacencyList: Парсит список смежности
+ * - parseIncidenceMatrix: Парсит матрицу инцидентности
+ * 
+ * Функции анализа:
+ * - getDegrees: Возвращает степени вершин
+ * - findConnectedComponents: Находит компоненты связности
+ * - isEulerian: Проверяет эйлеровость графа
+ * - isBipartite: Проверяет двудольность графа
+ * - isCompleteBipartite: Проверяет полную двудольность
+ * 
+ * Алгоритмы обхода:
+ * - dfs: Обход в глубину
+ * - bfs: Обход в ширину
+ * 
+ * Алгоритмы на графах:
+ * - primMST: Минимальное остовное дерево (Прима)
+ * - dijkstra: Кратчайшие пути (Дейкстра)
+ * - floydWarshall: Кратчайшие пути между всеми парами
+ * - encodePrufer: Кодирование Прюфера
+ * - decodePrufer: Декодирование Прюфера
+ * - greedyColoring: Раскраска графа
+ * 
+ * Генерация:
+ * - generateRandomGraph: Генерация случайного графа
+ * - generateWeightedGraph: Генерация взвешенного графа
+ */
+
+/**
+ * Парсит строку матрицы смежности в двумерный массив.
+ * 
+ * @param {string} input - Строка с матрицей смежности
+ * @param {number} n - Размер матрицы (количество вершин)
+ * @returns {number[][]} Матрица смежности
+ */
 export const parseAdjacencyMatrix = (input, n) => {
   if (!input || !input.trim()) return [];
   const lines = input.trim().split('\n');
@@ -9,6 +49,15 @@ export const parseAdjacencyMatrix = (input, n) => {
   return matrix;
 };
 
+};
+
+/**
+ * Парсит строку списка смежности в матрицу смежности.
+ * 
+ * @param {string} input - Строка со списками смежности
+ * @param {number} n - Количество вершин
+ * @returns {number[][]} Матрица смежности
+ */
 export const parseAdjacencyList = (input, n) => {
   if (!input || !input.trim()) return Array.from({ length: n }, () => Array(n).fill(0));
   const lines = input.trim().split('\n');
@@ -35,6 +84,15 @@ export const parseAdjacencyList = (input, n) => {
   return matrix;
 };
 
+};
+
+/**
+ * Парсит матрицу инцидентности в матрицу смежности.
+ * 
+ * @param {string} input - Строка с матрицей инцидентности
+ * @param {number} n - Количество вершин
+ * @returns {number[][]} Матрица смежности
+ */
 export const parseIncidenceMatrix = (input, n) => {
   if (!input || !input.trim()) return Array.from({ length: n }, () => Array(n).fill(0));
   const lines = input.trim().split('\n');
@@ -62,6 +120,14 @@ export const parseIncidenceMatrix = (input, n) => {
   return adjMatrix;
 };
 
+};
+
+/**
+ * Вычисляет степени всех вершин графа.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @returns {object[]} Массив объектов с номером вершины и степенью
+ */
 export const getDegrees = (matrix) => {
   if (!matrix || !matrix.length) return [];
   return matrix.map((row, i) => {
@@ -70,6 +136,15 @@ export const getDegrees = (matrix) => {
   });
 };
 
+};
+
+/**
+ * Находит все компоненты связности в графе.
+ * Использует поиск в глубину для обхода компонент.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @returns {number[][]} Массив компонент (каждая - массив вершин)
+ */
 export const findConnectedComponents = (matrix) => {
   if (!matrix || !matrix.length) return [];
   const n = matrix.length;
@@ -97,6 +172,16 @@ export const findConnectedComponents = (matrix) => {
   return components;
 };
 
+};
+
+/**
+ * Проверяет, является ли граф эйлеровым или полуэйлеровым.
+ * Граф эйлеров, если содержит цикл, проходящий через все ребра.
+ * Полуэйлеров, если содержит путь, проходящий через все ребра.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @returns {object} Объект с флагами isEulerian и isSemiEulerian
+ */
 export const isEulerian = (matrix) => {
   if (!matrix || !matrix.length) return { isEulerian: false, isSemiEulerian: false };
   const n = matrix.length;
@@ -120,6 +205,15 @@ export const isEulerian = (matrix) => {
   return { isEulerian: true, isSemiEulerian: false };
 };
 
+};
+
+/**
+ * Проверяет, является ли граф двудольным.
+ * Двудольный граф - вершины можно разделить на два множества без рёбер внутри множеств.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @returns {object} Объект с флагом isBipartite и множествами sets
+ */
 export const isBipartite = (matrix) => {
   if (!matrix || !matrix.length) {
     return { isBipartite: false, sets: null };
@@ -162,6 +256,15 @@ export const isBipartite = (matrix) => {
   return { isBipartite: true, sets: [set1, set2] };
 };
 
+};
+
+/**
+ * Проверяет, является ли граф полным двудольным.
+ * Полный двудольный - каждая вершина из одного множества связана со всеми из другого.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @returns {object} Объект с флагом isCompleteBipartite и множествами sets
+ */
 export const isCompleteBipartite = (matrix) => {
   if (!matrix || !matrix.length) {
     return { isCompleteBipartite: false, sets: null };
@@ -203,6 +306,16 @@ export const isCompleteBipartite = (matrix) => {
   return { isCompleteBipartite: true, sets };
 };
 
+};
+
+/**
+ * Выполняет обход графа в глубину (DFS).
+ * Возвращает порядок обхода вершин.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @param {number} start - Начальная вершина (по умолчанию 0)
+ * @returns {number[]} Порядок обхода вершин
+ */
 export const dfs = (matrix, start = 0) => {
   if (!matrix || !matrix.length) return [];
   const n = matrix.length;
@@ -230,6 +343,16 @@ export const dfs = (matrix, start = 0) => {
   return order;
 };
 
+};
+
+/**
+ * Выполняет обход графа в ширину (BFS).
+ * Возвращает порядок обхода вершин по уровням.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @param {number} start - Начальная вершина (по умолчанию 0)
+ * @returns {number[]} Порядок обхода вершин
+ */
 export const bfs = (matrix, start = 0) => {
   if (!matrix || !matrix.length) return [];
   const n = matrix.length;
@@ -271,6 +394,14 @@ export const bfs = (matrix, start = 0) => {
   return order;
 };
 
+};
+
+/**
+ * Находит минимальное остовное дерево (MST) алгоритмом Прима.
+ * 
+ * @param {number[][]} matrix - Матрица смежности с весами
+ * @returns {object} Объект с рёбрами и общим весом
+ */
 export const primMST = (matrix) => {
   if (!matrix || !matrix.length) return { edges: [], totalWeight: 0 };
   const n = matrix.length;
@@ -316,6 +447,15 @@ export const primMST = (matrix) => {
   return { edges, totalWeight };
 };
 
+};
+
+/**
+ * Находит кратчайшие пути от заданной вершины алгоритмом Дейкстры.
+ * 
+ * @param {number[][]} matrix - Матрица смежности с весами
+ * @param {number} start - Начальная вершина
+ * @returns {object[]} Массив объектов с вершиной и расстоянием
+ */
 export const dijkstra = (matrix, start) => {
   if (!matrix || !matrix.length) return [];
   const n = matrix.length;
@@ -352,6 +492,15 @@ export const dijkstra = (matrix, start) => {
   return dist.map((d, i) => ({ vertex: i + 1, distance: d === Infinity ? '∞' : d }));
 };
 
+};
+
+/**
+ * Находит кратчайшие пути между всеми парами вершин алгоритмом Флойда-Уоршелла.
+ * Использует динамическое программирование.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @returns {number[][]} Матрица кратчайших путей
+ */
 export const floydWarshall = (matrix) => {
   if (!matrix || !matrix.length) return [];
   const n = matrix.length;
@@ -380,6 +529,16 @@ export const floydWarshall = (matrix) => {
   );
 };
 
+};
+
+/**
+ * Кодирует дерево в последовательность Прюфера.
+ * Код Прюфера - последовательность длиной n-2.
+ * 
+ * @param {number[][]} edges - Массив рёбер дерева
+ * @param {number} n - Количество вершин
+ * @returns {number[]} Код Прюфера
+ */
 export const encodePrufer = (edges, n) => {
   if (!edges || !edges.length || !n) return [];
   const degree = Array(n + 1).fill(0);
@@ -422,6 +581,15 @@ export const encodePrufer = (edges, n) => {
   return code;
 };
 
+};
+
+/**
+ * Декодирует последовательность Прюфера в дерево.
+ * Восстанавливает дерево из кода Прюфера.
+ * 
+ * @param {number[]} code - Код Прюфера
+ * @returns {number[][]} Массив рёбер дерева
+ */
 export const decodePrufer = (code) => {
   if (!code || !code.length) return [];
   const n = code.length + 2;
@@ -462,6 +630,15 @@ export const decodePrufer = (code) => {
   return edges;
 };
 
+};
+
+/**
+ * Раскрашивает вершины графа жадным алгоритмом.
+ * Каждой вершине назначается минимальный возможный цвет.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @returns {object} Объект с цветами вершин и минимальным числом цветов
+ */
 export const greedyColoring = (matrix) => {
   if (!matrix || !matrix.length) return { colors: [], minColors: 0 };
   const n = matrix.length;
@@ -501,6 +678,16 @@ export const greedyColoring = (matrix) => {
   return { colors: result, minColors: maxColor };
 };
 
+};
+
+/**
+ * Генерирует случайный связный граф.
+ * При necessary делает граф связным, добавляя рёбра для связывания компонент.
+ * 
+ * @param {number} n - Количество вершин
+ * @param {boolean} connected - Делать ли граф связным
+ * @returns {number[][]} Матрица смежности
+ */
 export const generateRandomGraph = (n, connected = false) => {
   if (!n || n < 2) return [];
   const matrix = Array.from({ length: n }, () => Array(n).fill(0));
@@ -526,6 +713,15 @@ export const generateRandomGraph = (n, connected = false) => {
   return matrix;
 };
 
+};
+
+/**
+ * Генерирует случайный взвешенный граф.
+ * Веса рёбер - случайные числа от 1 до 10.
+ * 
+ * @param {number} n - Количество вершин
+ * @returns {number[][]} Матрица смежности с весами
+ */
 export const generateWeightedGraph = (n) => {
   if (!n || n < 2) return [];
   const matrix = Array.from({ length: n }, () => Array(n).fill(0));

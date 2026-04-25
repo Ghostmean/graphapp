@@ -1,8 +1,16 @@
+/**
+ * Индексный файл приложения Expo.
+ * Регистрирует корневой компонент приложения для запуска.
+ * 
+ * Функции:
+ * - registerRootComponent: Регистрирует компонент App как главный компонент приложения
+ *   для Expo или нативной сборки, настраивая окружение соответствующим образом
+ */
 import { registerRootComponent } from 'expo';
 
 import App from './App';
 
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go or in a native build,
-// the environment is set up appropriately
+/**
+ * РегистрируетApp как корневой компонент приложения
+ */
 registerRootComponent(App);

@@ -1,7 +1,30 @@
+/**
+ * UI компоненты приложения.
+ * Содержит переиспользуемые компоненты пользовательского интерфейса.
+ * 
+ * Компоненты:
+ * - GlassInput: Поле ввода с стилизацией под стекло
+ * - GlassButton: Кнопка с анимацией нажатия
+ * - GlassCard: Карточка с стилизацией под стекло
+ * - InputSelector: Переключатель опций
+ * - NumberInput: Поле ввода числа с кнопками +/-
+ * - ResultBox: Блок для отображения результата
+ */
 import React from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
+/**
+ * Поле ввода с стилизацией под стекло.
+ * 
+ * @param {string} label - Метка поля
+ * @param {string} value - Значение поля
+ * @param {function} onChangeText - Обработчик изменения текста
+ * @param {string} placeholder - Заполнитель
+ * @param {boolean} multiline - Многострочный режим
+ * @param {string} keyboardType - Тип клавиатуры
+ * @returns {View} Поле ввода
+ */
 const GlassInput = ({ label, value, onChangeText, placeholder, multiline, keyboardType }) => {
   const { theme } = useTheme();
   return (
@@ -24,39 +47,111 @@ const GlassInput = ({ label, value, onChangeText, placeholder, multiline, keyboa
   );
 };
 
+/**
+ * Кнопка с анимацией при нажатии и эффектом ripple.
+ * Поддерживает несколько вариантов: primary, accent, secondary.
+ * 
+ * @param {string} title - Текст кнопки
+ * @param {function} onPress - Обработчик нажатия
+ * @param {object} style - Дополнительные стили
+ * @param {string} variant - Вариант кнопки (primary, accent, secondary)
+ * @param {boolean} disabled - Флаг отключения кнопки
+ * @returns {TouchableOpacity} Кнопка
+ */
 const GlassButton = ({ title, onPress, style, variant = 'primary', disabled }) => {
   const { theme } = useTheme();
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const rippleAnim = React.useRef(new Animated.Value(0)).current;
+
+  const handlePressIn = () => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+      }),
+      Animated.timing(rippleAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 3,
+        useNativeDriver: true,
+      }),
+      Animated.timing(rippleAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const getColors = () => {
+    if (disabled) return { bg: 'rgba(128, 128, 128, 0.5)', text: 'rgba(255, 255, 255, 0.5)', ripple: 'transparent' };
+    if (variant === 'accent') {
+      return { bg: theme.accent, text: '#fff', ripple: 'rgba(255,255,255,0.4)' };
+    }
+    if (variant === 'secondary') {
+      return { bg: 'transparent', text: theme.primary, ripple: theme.primary };
+    }
+    return { bg: theme.buttonPrimary, text: '#fff', ripple: 'rgba(255,255,255,0.3)' };
+  };
+
+  const colors = getColors();
+
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        {
-          backgroundColor: disabled
-            ? 'rgba(128, 128, 128, 0.5)'
-            : variant === 'accent'
-              ? theme.accent
-              : variant === 'secondary'
-                ? theme.buttonSecondary
-                : theme.buttonPrimary,
-          borderColor: variant === 'secondary' ? theme.primary : 'transparent',
-          borderWidth: variant === 'secondary' ? 2 : 0,
-        },
-        disabled && styles.buttonDisabled,
-        style
-      ]}
       onPress={onPress}
-      activeOpacity={0.85}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={1}
       disabled={disabled}
     >
-      <Text style={[
-        styles.buttonText,
-        { color: variant === 'secondary' ? theme.primary : '#fff' },
-        disabled && styles.buttonTextDisabled
-      ]}>{title}</Text>
+      <Animated.View
+        style={[
+          styles.button,
+          {
+            backgroundColor: colors.bg,
+            borderColor: variant === 'secondary' ? theme.primary : 'transparent',
+            borderWidth: variant === 'secondary' ? 2 : 0,
+            transform: [{ scale: scaleAnim }],
+          },
+          disabled && styles.buttonDisabled,
+          style,
+        ]}
+      >
+        <Animated.View
+          style={[
+            styles.ripple,
+            {
+              backgroundColor: colors.ripple,
+              opacity: rippleAnim,
+              transform: [{ scale: rippleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 2.5] }) }],
+            },
+          ]}
+        />
+        <Text style={[styles.buttonText, { color: colors.text }, disabled && styles.buttonTextDisabled]}>
+          {title}
+        </Text>
+      </Animated.View>
     </TouchableOpacity>
   );
 };
 
+/**
+ * Карточка с стилизацией под стекло.
+ * Используется для группировки контента.
+ * 
+ * @param {React.ReactNode} children - Дочерние элементы
+ * @param {object} style - Дополнительные стили
+ * @returns {View} Карточка
+ */
 const GlassCard = ({ children, style }) => {
   const { theme } = useTheme();
   return (
@@ -69,6 +164,16 @@ const GlassCard = ({ children, style }) => {
   );
 };
 
+/**
+ * Переключатель опций.
+ * Позволяет выбрать одну из нескольких опций.
+ * 
+ * @param {string[]} options - Массив значений опций
+ * @param {string} selected - Выбранная опция
+ * @param {function} onSelect - Обработчик выбора
+ * @param {string[]} labels - Метки для отображения
+ * @returns {View} Контейнер с переключателем
+ */
 const InputSelector = ({ options, selected, onSelect, labels }) => {
   const { theme } = useTheme();
   return (
@@ -99,6 +204,17 @@ const InputSelector = ({ options, selected, onSelect, labels }) => {
   );
 };
 
+/**
+ * Поле ввода числа с кнопками инкремента и декремента.
+ * Позволяет изменять число в заданном диапазоне.
+ * 
+ * @param {string} label - Метка поля
+ * @param {number} value - Текущее значение
+ * @param {function} onChangeText - Обработчик изменения
+ * @param {number} min - Минимальное значение
+ * @param {number} max - Максимальное значение
+ * @returns {View} Поле ввода числа
+ */
 const NumberInput = ({ label, value, onChangeText, min, max }) => {
   const { theme } = useTheme();
   return (
@@ -129,6 +245,15 @@ const NumberInput = ({ label, value, onChangeText, min, max }) => {
   );
 };
 
+/**
+ * Блок для отображения результата.
+ * Показывает заголовок и содержание результата.
+ * 
+ * @param {string} title - Заголовок результата
+ * @param {string} content - Содержание результата
+ * @param {object} style - Дополнительные стили
+ * @returns {View} Блок результата
+ */
 const ResultBox = ({ title, content, style }) => {
   const { theme } = useTheme();
   return (
@@ -171,11 +296,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: 10,
     borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
+    overflow: 'hidden',
+  },
+  ripple: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    top: '50%',
+    left: '50%',
+    marginTop: -50,
+    marginLeft: -50,
   },
   buttonSecondary: {
     borderWidth: 2,
@@ -183,7 +314,6 @@ const styles = StyleSheet.create({
   buttonDanger: {
   },
   buttonDisabled: {
-    shadowOpacity: 0.1,
   },
   buttonText: {
     fontSize: 17,
@@ -197,11 +327,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
   },
   selectorContainer: {
     flexDirection: 'row',
@@ -214,11 +339,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
   },
   selectorButtonActive: {},
   selectorText: {
@@ -244,11 +364,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
   },
   numberButtonText: {
     fontSize: 32,
@@ -266,11 +381,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
   },
   resultTitle: {
     fontSize: 12,
@@ -287,4 +397,5 @@ const styles = StyleSheet.create({
   },
 });
 
+/** Экспорт UI компонентов */
 export { GlassInput, GlassButton, GlassCard, InputSelector, NumberInput, ResultBox };

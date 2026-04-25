@@ -1,3 +1,14 @@
+/**
+ * Компонент визуализации графа.
+ * Отображает граф в виде круга с вершинами и рёбрами.
+ * Поддерживает взвешенные графы и раскраску вершин.
+ * 
+ * @param {number[][]} matrix - Матрица смежности
+ * @param {boolean} weighted - Отображать ли веса рёбер
+ * @param {object[]} highlightedEdges - Выделенные рёбра
+ * @param {object[]} vertexColors - Цвета вершин
+ * @param {function} onVertexPress - Обработчик нажатия на вершину
+ */
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, StyleSheet, PanResponder, Dimensions } from 'react-native';
 import Svg, { Circle, Line, Text as SvgText, G } from 'react-native-svg';
@@ -6,6 +17,12 @@ import { useTheme } from '../context/ThemeContext';
 const { width: screenWidth } = Dimensions.get('window');
 const GRAPH_SIZE = Math.min(screenWidth - 40, 280);
 
+/**
+ * Визуализация графа.
+ * 
+ * @param {object} props - Свойства компонента
+ * @returns {View} Компонент визуализации
+ */
 const GraphVisualization = ({ 
   matrix, 
   weighted = false,
@@ -133,14 +150,14 @@ const GraphVisualization = ({
             cy={pos.y}
             r={vertexRadius}
             fill={color}
-            stroke={isDark ? '#fff' : '#6000b9'}
+            stroke={isDark ? '#fff' : '#e5ff00'}
             strokeWidth={2}
           />
           <SvgText
             x={pos.x}
             y={pos.y + 3}
             fontSize={fontSize}
-            fill={isDark ? '#fff' : '#6000b9'}
+            fill={isDark ? '#fff' : '#ff2200'}
             textAnchor="middle"
             fontWeight="bold"
           >

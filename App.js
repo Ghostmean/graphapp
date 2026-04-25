@@ -1,3 +1,11 @@
+/**
+ * Главный компонент приложения Graph Explorer.
+ * Отвечает за навигацию и тему приложения.
+ * 
+ * Функции:
+ * - NavigationTheme: Обертка для навигации с темой
+ * - AppNavigator: Настраивает стек навигации между экранами
+ */
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
@@ -9,6 +17,15 @@ import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * Компонент обертка для NavigationContainer с применением темы.
+ * Применяет цветовую схему темы к навигации.
+ * 
+ * @param {object} props.isDark - Флаг темной темы
+ * @param {function} props.toggleTheme - Функция переключения темы
+ * @param {React.ReactNode} props.children - Дочерние элементы
+ * @returns {NavigationContainer} Контейнер навигации с темой
+ */
 const NavigationTheme = ({ isDark, children }) => {
   const { theme } = useTheme();
   
@@ -31,6 +48,12 @@ const NavigationTheme = ({ isDark, children }) => {
   );
 };
 
+/**
+ * Компонент навигации стека. Определяет маршруты между экранами.
+ * Включает: MainMenuScreen, TasksListScreen, TaskScreen, LibraryScreen, AboutScreen
+ * 
+ * @returns {Stack.Navigator} Навигатор стека с экранами
+ */
 const AppNavigator = () => {
   const { theme, isDark, toggleTheme } = useTheme();
 
@@ -98,6 +121,12 @@ const AppNavigator = () => {
   );
 };
 
+/**
+ * Корневой компонент приложения.
+ * Оборачивает приложение в провайдеры темы и жестов.
+ * 
+ * @returns {GestureHandlerRootView} Корневой вид с навигацией
+ */
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.container}>

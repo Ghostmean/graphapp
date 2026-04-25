@@ -1,11 +1,26 @@
+/**
+ * Экраны задач приложения Graph Explorer.
+ * Содержит все экраны: главное меню, список задач, библиотека, о приложении, задачи.
+ * 
+ * Экраны:
+ * - MainMenuScreen: Главное меню с кнопками навигации
+ * - TasksListScreen: Список доступных задач
+ * - LibraryScreen: Библиотека терминов теории графов
+ * - AboutScreen: Информация о разработчиках
+ * - TaskScreen: Экран выполнения конкретной задачи
+ */
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Animated, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { GlassInput, GlassButton, GlassCard, InputSelector, NumberInput, ResultBox } from '../components/UIComponents';
 import GraphVisualization from '../components/GraphVisualization';
 import { libraryDefinitions, authors } from '../data/library';
 import * as Utils from '../utils/graphUtils';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme, ThemeToggle } from '../context/ThemeContext';
 
 const taskTitles = [
   'Базовый анализ',
@@ -28,27 +43,19 @@ export const MainMenuScreen = ({ navigation }) => {
 
   return (
     <LinearGradient
-      colors={isDark ? ['#1a1a2e', '#16213e', '#0f3460'] : ['#c7d2fe', '#a5b4fc', '#818cf8']}
+      colors={isDark ? ['#1a1209', '#2d1f0f', '#451a03'] : ['#ffedd5', '#fed7aa', '#fdba74']}
       style={styles.gradientBackground}
     >
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: isDark ? '#fff' : '#312e81' }]}>Graph Explorer</Text>
-          <Text style={[styles.subtitle, { color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(49,46,129,0.7)' }]}>Изучение теории графов</Text>
-          <Text style={[styles.description, { color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(49,46,129,0.6)' }]}>
+          <Text style={[styles.title, { color: isDark ? '#fb923c' : '#c2410c' }]}>Graph Explorer</Text>
+          <Text style={[styles.subtitle, { color: isDark ? 'rgba(251,146,60,0.7)' : 'rgba(194,65,12,0.7)' }]}>Изучение теории графов</Text>
+          <Text style={[styles.description, { color: isDark ? 'rgba(251,146,60,0.6)' : 'rgba(194,65,12,0.6)' }]}>
             Интерактивное обучение алгоритмам на графах
           </Text>
         </View>
 
-        <TouchableOpacity
-          style={[styles.themeToggle, { backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(79,70,229,0.15)', borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(79,70,229,0.3)' }]}
-          onPress={toggleTheme}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.themeToggleText, { color: isDark ? '#fff' : '#312e81' }]}>
-            {isDark ? 'Светлая тема' : 'Тёмная тема'}
-          </Text>
-        </TouchableOpacity>
+        <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} />
 
         <GlassButton
           title="Задачи"
@@ -105,14 +112,20 @@ export const TasksListScreen = ({ navigation }) => {
 export const LibraryScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const [search, setSearch] = useState('');
-  
+  const [expanded, setExpanded] = useState(null);
+
   const definitions = Object.entries(libraryDefinitions);
-  
-  const filteredDefs = search 
-    ? definitions.filter(([key]) => 
+
+  const filteredDefs = search
+    ? definitions.filter(([key]) =>
         key.toLowerCase().includes(search.toLowerCase())
       )
     : definitions;
+
+  const toggleExpand = (index) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpanded(expanded === index ? null : index);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -123,12 +136,30 @@ export const LibraryScreen = ({ navigation }) => {
           onChangeText={setSearch}
           placeholder="Введите термин..."
         />
-        
+
         {filteredDefs.map(([term, definition], index) => (
-          <GlassCard key={index} style={styles.definitionCard}>
-            <Text style={[styles.termText, { color: theme.primary }]}>{term}</Text>
-            <Text style={[styles.definitionText, { color: theme.text }]}>{definition}</Text>
-          </GlassCard>
+          <TouchableOpacity
+            key={index}
+            onPress={() => toggleExpand(index)}
+            activeOpacity={0.8}
+          >
+            <View style={[
+              styles.termCard,
+              { backgroundColor: theme.surface, borderColor: theme.border }
+            ]}>
+              <View style={styles.termHeader}>
+                <Text style={[styles.termText, { color: theme.primary }]}>{term}</Text>
+                <Text style={[styles.expandIcon, { color: theme.primary }]}>
+                  {expanded === index ? '−' : '+'}
+                </Text>
+              </View>
+              {expanded === index && (
+                <Text style={[styles.definitionText, { color: theme.text }]}>
+                  {definition}
+                </Text>
+              )}
+            </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>
@@ -137,19 +168,29 @@ export const LibraryScreen = ({ navigation }) => {
 
 export const AboutScreen = ({ navigation }) => {
   const { theme } = useTheme();
+
+  const developers = [
+    { name: 'Зырянов Андрей', role: 'Frontend', desc: 'UI/UX дизайн и компоненты' },
+    { name: 'Моор Егор', role: 'Frontend', desc: 'Интерактивные задачи и графы' },
+    { name: 'Ярослав Даниил', role: 'Backend', desc: 'Алгоритмы и логика' },
+  ];
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ScrollView>
-        <GlassCard style={styles.aboutCard}>
-          <Text style={[styles.aboutTitle, { color: theme.primary }]}>Разработчики</Text>
-          {authors.map((author, index) => (
-            <View key={index} style={styles.authorItem}>
-              <Text style={[styles.authorName, { color: theme.text }]}>{author.name}</Text>
-              <Text style={[styles.authorRole, { color: theme.primary }]}>{author.role}</Text>
-              <Text style={[styles.authorDesc, { color: theme.textSecondary }]}>{author.description}</Text>
+      <ScrollView contentContainerStyle={styles.authorsContainer}>
+        <Text style={[styles.aboutTitle, { color: theme.primary }]}>Разработчики</Text>
+        <View style={styles.authorsRow}>
+          {developers.map((dev, index) => (
+            <View key={index} style={[styles.authorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={[styles.authorAvatar, { backgroundColor: theme.primary }]}>
+                <Text style={styles.authorInitial}>{dev.name.charAt(0)}</Text>
+              </View>
+              <Text style={[styles.authorName, { color: theme.text }]}>{dev.name}</Text>
+              <Text style={[styles.authorRole, { color: theme.primary }]}>{dev.role}</Text>
+              <Text style={[styles.authorDesc, { color: theme.textSecondary }]}>{dev.desc}</Text>
             </View>
           ))}
-        </GlassCard>
+        </View>
       </ScrollView>
     </View>
   );
@@ -646,18 +687,6 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     paddingHorizontal: 32,
   },
-  themeToggle: {
-    alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 20,
-    marginBottom: 30,
-    borderWidth: 1,
-  },
-  themeToggleText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
   mainMenuButton: {
     marginVertical: 12,
     paddingVertical: 20,
@@ -674,11 +703,6 @@ const styles = StyleSheet.create({
     width: '45%',
     alignItems: 'center',
     borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
   },
   taskIndex: {
     fontSize: 24,
@@ -715,6 +739,21 @@ const styles = StyleSheet.create({
   definitionCard: {
     marginBottom: 12,
   },
+  termCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  termHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  expandIcon: {
+    fontSize: 24,
+    fontWeight: '300',
+  },
   termText: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -727,10 +766,41 @@ const styles = StyleSheet.create({
   aboutCard: {
     alignItems: 'center',
   },
+  authorsContainer: {
+    paddingBottom: 20,
+  },
+  authorsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    marginTop: 16,
+  },
+  authorCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 16,
+    marginHorizontal: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  authorAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  authorInitial: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#fff',
+  },
   aboutTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    textAlign: 'center',
+    marginTop: 16,
   },
   authorItem: {
     alignItems: 'center',
@@ -740,15 +810,18 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   authorName: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 4,
   },
   authorRole: {
-    fontSize: 14,
-    marginTop: 4,
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 4,
   },
   authorDesc: {
-    fontSize: 14,
-    marginTop: 8,
+    fontSize: 12,
+    textAlign: 'center',
   },
 });
