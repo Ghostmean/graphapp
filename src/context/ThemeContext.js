@@ -22,7 +22,7 @@ const orangeDark = {
   primary: '#FB923C',
   primaryLight: '#FDBA74',
   accent: '#22C55E',
-  text: '#FFFFFF',
+  text: '#f88400',
   textSecondary: 'rgba(251, 146, 60, 0.7)',
   border: 'rgba(251, 146, 60, 0.3)',
   buttonPrimary: '#F97316',

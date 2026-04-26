@@ -170,8 +170,8 @@ export const AboutScreen = ({ navigation }) => {
   const { theme } = useTheme();
 
   const developers = [
-    { name: 'Зырянов Андрей', role: 'Frontend', desc: 'UI/UX дизайн и компоненты' },
-    { name: 'Моор Егор', role: 'Frontend', desc: 'Интерактивные задачи и графы' },
+    { name: 'Зырянов Андрей', role: 'Teamled', desc: 'Координация команды' },
+    { name: 'Моор Егор', role: 'Frontend/UI/UX', desc: 'Интерактивные задачи и графы' },
     { name: 'Ярослав Даниил', role: 'Backend', desc: 'Алгоритмы и логика' },
   ];
 
