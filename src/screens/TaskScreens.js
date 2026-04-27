@@ -212,6 +212,7 @@ export const TaskScreen = ({ route, navigation }) => {
   const [startVertex, setStartVertex] = useState(1);
   const [pruferInput, setPruferInput] = useState('');
   const [error, setError] = useState('');
+  const [traversalAnimation, setTraversalAnimation] = useState(null);
 
   const validateAndParseGraph = () => {
     setError('');
@@ -309,12 +310,13 @@ export const TaskScreen = ({ route, navigation }) => {
         break;
       }
       case 1: {
-        const order = Utils.dfs(m);
+        const order = Utils.dfs(m, startVertex - 1);
         setResult({ order: order.join(' → '), type: 'DFS' });
+        setTraversalAnimation({ order, type: 'DFS' });
         break;
       }
       case 2: {
-        const correctOrder = Utils.dfs(m);
+        const correctOrder = Utils.dfs(m, startVertex - 1);
         const userOrder = userSequence.split(/[\s,]+/).filter(x => x).map(Number);
         if (userOrder.some(isNaN) || userOrder.length !== numVertices) {
           setError(`Введите последовательность из ${numVertices} чисел`);
@@ -326,15 +328,17 @@ export const TaskScreen = ({ route, navigation }) => {
           correct: correct ? 'Правильно!' : 'Неправильно',
           correctAnswer: correctOrder.join(' → '),
         });
+        setTraversalAnimation({ order: correctOrder, type: 'DFS' });
         break;
       }
       case 3: {
-        const order = Utils.bfs(m);
+        const order = Utils.bfs(m, startVertex - 1);
         setResult({ order: order.join(' → '), type: 'BFS' });
+        setTraversalAnimation({ order, type: 'BFS' });
         break;
       }
       case 4: {
-        const correctOrder = Utils.bfs(m);
+        const correctOrder = Utils.bfs(m, startVertex - 1);
         const userOrder = userSequence.split(/[\s,]+/).filter(x => x).map(Number);
         if (userOrder.some(isNaN) || userOrder.length !== numVertices) {
           setError(`Введите последовательность из ${numVertices} чисел`);
@@ -346,6 +350,7 @@ export const TaskScreen = ({ route, navigation }) => {
           correct: correct ? 'Правильно!' : 'Неправильно',
           correctAnswer: correctOrder.join(' → '),
         });
+        setTraversalAnimation({ order: correctOrder, type: 'BFS' });
         break;
       }
       case 5: {
@@ -629,6 +634,19 @@ export const TaskScreen = ({ route, navigation }) => {
           />
         ) : null}
         
+        {taskIndex >= 1 && taskIndex <= 4 ? (
+          <NumberInput
+            label="Начальная вершина"
+            value={startVertex}
+            onChangeText={(val) => {
+              setStartVertex(val);
+              setTraversalAnimation(null);
+            }}
+            min={1}
+            max={numVertices}
+          />
+        ) : null}
+        
         {taskIndex === 6 ? (
           <GlassInput
             label="Введите число компонент"
@@ -670,6 +688,7 @@ export const TaskScreen = ({ route, navigation }) => {
             matrix={generatedGraph} 
             weighted={taskIndex === 7 || taskIndex === 8}
             vertexColors={taskIndex === 12 ? (coloringResult || []).map((c, i) => ({ color: c.color, colorName: c.colorName })) : []}
+            traversalAnimation={taskIndex >= 1 && taskIndex <= 4 ? traversalAnimation : null}
           />
         )}
         

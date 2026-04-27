@@ -312,15 +312,17 @@ export const isCompleteBipartite = (matrix) => {
  * @param {number} start - Начальная вершина (по умолчанию 0)
  * @returns {number[]} Порядок обхода вершин
  */
-export const dfs = (matrix, start = 0) => {
+export const dfs = (matrix, startVertex = 0) => {
   if (!matrix || !matrix.length) return [];
   const n = matrix.length;
-  const visited = [];
+  const visited = Array(n).fill(false);
   const order = [];
+  const visitedOrder = [];
   
   const dfsRecursive = (v) => {
     visited[v] = true;
     order.push(v + 1);
+    visitedOrder.push(v + 1);
     for (let i = 0; i < n; i++) {
       if (matrix[v][i] === 1 && !visited[i]) {
         dfsRecursive(i);
@@ -328,7 +330,8 @@ export const dfs = (matrix, start = 0) => {
     }
   };
   
-  dfsRecursive(start);
+  const normalizedStart = Math.max(0, Math.min(n - 1, startVertex));
+  dfsRecursive(normalizedStart);
   
   for (let i = 0; i < n; i++) {
     if (!visited[i]) {
@@ -349,18 +352,20 @@ export const dfs = (matrix, start = 0) => {
  * @param {number} start - Начальная вершина (по умолчанию 0)
  * @returns {number[]} Порядок обхода вершин
  */
-export const bfs = (matrix, start = 0) => {
+export const bfs = (matrix, startVertex = 0) => {
   if (!matrix || !matrix.length) return [];
   const n = matrix.length;
   const visited = Array(n).fill(false);
-  const queue = [start];
+  const queue = [startVertex];
   const order = [];
+  const visitedOrder = [];
   
-  visited[start] = true;
+  visited[startVertex] = true;
   
   while (queue.length > 0) {
     const v = queue.shift();
     order.push(v + 1);
+    visitedOrder.push(v + 1);
     
     for (let i = 0; i < n; i++) {
       if (matrix[v][i] === 1 && !visited[i]) {
@@ -377,6 +382,7 @@ export const bfs = (matrix, start = 0) => {
       while (queue.length > 0) {
         const v = queue.shift();
         order.push(v + 1);
+        visitedOrder.push(v + 1);
         for (let j = 0; j < n; j++) {
           if (matrix[v][j] === 1 && !visited[j]) {
             visited[j] = true;

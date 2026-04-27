@@ -9,13 +9,20 @@
  * @param {object[]} vertexColors - Цвета вершин
  * @param {function} onVertexPress - Обработчик нажатия на вершину
  */
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { View, StyleSheet, PanResponder, Dimensions } from 'react-native';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { View, StyleSheet, PanResponder, Dimensions, Animated } from 'react-native';
 import Svg, { Circle, Line, Text as SvgText, G } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 const GRAPH_SIZE = Math.min(screenWidth - 40, 280);
+
+const TRAVERSAL_COLORS = {
+  unvisited: null,
+  current: '#FFD700',
+  visited: '#4CAF50',
+  visitedSecondary: '#81C784',
+};
 
 /**
  * Визуализация графа.
@@ -28,10 +35,40 @@ const GraphVisualization = ({
   weighted = false,
   highlightedEdges = [],
   vertexColors = [],
-  onVertexPress
+  onVertexPress,
+  traversalAnimation = null,
 }) => {
   const { theme, isDark } = useTheme();
   const n = matrix ? matrix.length : 0;
+  
+  const [currentVertex, setCurrentVertex] = useState(-1);
+  const [visitedVertices, setVisitedVertices] = useState([]);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (traversalAnimation && traversalAnimation.order && traversalAnimation.order.length > 0) {
+      setVisitedVertices([]);
+      setCurrentVertex(-1);
+      
+      let index = 0;
+      const interval = setInterval(() => {
+        if (index < traversalAnimation.order.length) {
+          const vertex = traversalAnimation.order[index];
+          setCurrentVertex(vertex - 1);
+          setVisitedVertices(prev => [...prev, vertex - 1]);
+          index++;
+        } else {
+          setCurrentVertex(-1);
+          clearInterval(interval);
+        }
+      }, 600);
+      
+      return () => clearInterval(interval);
+    } else {
+      setVisitedVertices([]);
+      setCurrentVertex(-1);
+    }
+  }, [traversalAnimation]);
   
   const positions = useMemo(() => {
     if (!matrix || n === 0) return [];
@@ -134,16 +171,29 @@ const GraphVisualization = ({
     return edges;
   };
 
-  const renderVertices = () => {
-    const { theme } = useTheme();
+  const renderVertices = (vertexColors, visitedVertices, currentVertex) => {
     const vertexRadius = Math.max(10, 22 - n);
     const fontSize = Math.max(8, 12 - n * 0.3);
     
     return positions.map((pos, index) => {
       if (!pos) return null;
-      const vc = vertexColors[index];
-      const color = vc && vc.colorName ? vc.colorName : theme.primary;
-      const strokeColor = isDark ? '#fff' : '#333';
+      
+      let fillColor = theme.primary;
+      let strokeColor = isDark ? '#fff' : '#333';
+      let strokeWidth = 2;
+      
+      if (vertexColors.length > 0 && vertexColors[index]) {
+        fillColor = vertexColors[index].colorName || theme.primary;
+      }
+      
+      if (currentVertex === index) {
+        fillColor = TRAVERSAL_COLORS.current;
+        strokeWidth = 3;
+      } else if (visitedVertices.includes(index)) {
+        fillColor = visitedVertices.length === traversalAnimation?.order?.length 
+          ? TRAVERSAL_COLORS.visited 
+          : TRAVERSAL_COLORS.visitedSecondary;
+      }
       
       return (
         <G key={`vertex-${index}`}>
@@ -151,9 +201,9 @@ const GraphVisualization = ({
             cx={pos.x}
             cy={pos.y}
             r={vertexRadius}
-            fill={color}
+            fill={fillColor}
             stroke={strokeColor}
-            strokeWidth={2}
+            strokeWidth={strokeWidth}
           />
           <SvgText
             x={pos.x}
@@ -174,7 +224,7 @@ const GraphVisualization = ({
     <View style={styles.container}>
       <Svg width={GRAPH_SIZE} height={GRAPH_SIZE}>
         {renderEdges()}
-        {renderVertices()}
+        {renderVertices(vertexColors, visitedVertices, currentVertex)}
       </Svg>
     </View>
   );
